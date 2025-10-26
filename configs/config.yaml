@@ -1,0 +1,44 @@
+server:
+  port: "8080"
+  host: "0.0.0.0"
+  mode: "debug"  # debug, release
+
+storage:
+  data_dir: "./data"
+  max_upload_size: 10485760  # 10MB
+
+openai:
+  api_key: "sk-xx"  # 从环境变量读取
+  model: "deepseek-v3.1"
+  base_url: "https://openai.qiniu.com/v1"
+  timeout: 300  # 秒
+video_generation:
+  type: "qiniu"  # qiniu, local_sd
+  # 七牛云文生视频配置
+  qiniu:
+    api_url: "https://openai.qiniu.com/v1/videos/generations"  # 七牛云OpenAI兼容API端点
+    api_key: "sk-xx"  # 使用你的API key
+    model: "veo-3.0-fast-generate-preview"  # Veo模型
+    timeout: 600
+    max_wait_time: 600  # 等待视频生成完成的最大时间(秒)
+  # 本地SD Web UI配置 (备选)
+  local_sd:
+    api_url: "http://127.0.0.1:7860"
+    timeout: 300
+
+video:
+  default_bgm: "default.mp3"
+  resolution: "1920x1080"
+  fps: 30
+  quality: "high"  # low, medium, high
+  max_duration: 120  # 最大视频时长(秒)
+
+limits:
+  max_concurrent_tasks: 1  # MVP单任务处理
+  max_shots_per_video: 20
+  max_text_length: 2000  # 最大输入文字长度
+
+log:
+  level: "info"  # debug, info, warn, error
+  output: "stdout"  # stdout, file
+  file_path: "./logs/app.log"

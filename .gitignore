@@ -30,3 +30,27 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# MVP项目特定
+/bin/
+/data/uploads/*
+/data/projects/*
+!/data/assets/
+/logs/*.log
+*.mp4
+*.mp3
+*.wav
+*.png
+*.jpg
+*.jpeg
+
+# 日志文件
+*.log
+nohup.out
+
+# 临时脚本
+check_task.sh
+wait_task.sh
+
+# 编译后的二进制文件
+cmd/server/server
