@@ -213,31 +213,40 @@ func (c *QiniuVideoClient) WaitForCompletion(ctx context.Context, taskID string,
 		zap.Duration("max_wait_time", maxWaitTime))
 
 	deadline := time.Now().Add(maxWaitTime)
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(10 * time.Second) // 增加查询间隔到10秒
 	defer ticker.Stop()
 
+	checkCount := 0
 	for {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case <-ticker.C:
+			checkCount++
 			if time.Now().After(deadline) {
-				return nil, fmt.Errorf("timeout waiting for video generation")
+				return nil, fmt.Errorf("timeout waiting for video generation after %d checks", checkCount)
 			}
 
 			result, err := c.QueryTaskStatus(ctx, taskID)
 			if err != nil {
-				logger.Warn("Failed to query task status", zap.Error(err))
+				logger.Warn("Failed to query task status", 
+					zap.Error(err),
+					zap.Int("check_count", checkCount))
 				continue
 			}
 
-			logger.Debug("Task status",
+			logger.Info("Task status check",
 				zap.String("task_id", taskID),
-				zap.String("status", result.Status))
+				zap.String("status", result.Status),
+				zap.String("message", result.Message),
+				zap.Int("check_count", checkCount))
 
-			// 检查是否完成 (七牛云API状态为 "Completed")
+			// 检查是否完成 (七牛云API状态)
 			if result.Status == "Completed" || result.Status == "completed" || result.Status == "success" {
 				videoURL := result.GetVideoURL()
+				if videoURL == "" {
+					return nil, fmt.Errorf("video generation completed but no video URL found")
+				}
 				logger.Info("Video generation completed",
 					zap.String("task_id", taskID),
 					zap.String("video_url", videoURL))
@@ -246,7 +255,19 @@ func (c *QiniuVideoClient) WaitForCompletion(ctx context.Context, taskID string,
 
 			// 检查是否失败
 			if result.Status == "Failed" || result.Status == "failed" || result.Status == "error" {
-				return nil, fmt.Errorf("video generation failed: %s", result.Message)
+				errorMsg := result.Message
+				if errorMsg == "" {
+					errorMsg = "unknown error"
+				}
+				return nil, fmt.Errorf("video generation failed: %s", errorMsg)
+			}
+
+			// 如果长时间处于Queued状态，给出提示
+			if result.Status == "Queued" && checkCount > 6 { // 超过1分钟还在排队
+				logger.Warn("Task has been queued for a long time",
+					zap.String("task_id", taskID),
+					zap.Int("check_count", checkCount),
+					zap.String("suggestion", "Qiniu service may be busy"))
 			}
 		}
 	}

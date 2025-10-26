@@ -13,14 +13,14 @@ openai:
   base_url: "https://openai.qiniu.com/v1"
   timeout: 300  # 秒
 video_generation:
-  type: "qiniu"  # qiniu, local_sd
+  type: "qiniu"  # qiniu, local_sd - 使用七牛云视频生成
   # 七牛云文生视频配置
   qiniu:
     api_url: "https://openai.qiniu.com/v1/videos/generations"  # 七牛云OpenAI兼容API端点
     api_key: "sk-xx"  # 使用你的API key
     model: "veo-3.0-fast-generate-preview"  # Veo模型
     timeout: 600
-    max_wait_time: 600  # 等待视频生成完成的最大时间(秒)
+    max_wait_time: 600  # 等待视频生成完成的最大时间(秒) - 增加到10分钟
   # 本地SD Web UI配置 (备选)
   local_sd:
     api_url: "http://127.0.0.1:7860"

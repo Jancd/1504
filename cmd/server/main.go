@@ -97,6 +97,11 @@ func main() {
 		logger.Fatal("Unsupported video generation type", zap.String("type", cfg.VideoGeneration.Type))
 	}
 
+	// 确保七牛云服务可用
+	if cfg.VideoGeneration.Type == "qiniu" && qiniuVideoClient == nil {
+		logger.Fatal("Qiniu video client is required but not initialized")
+	}
+
 	// 创建任务管理器
 	taskManager := task.NewManager()
 
@@ -122,6 +127,7 @@ func main() {
 
 	// 创建七牛云视频服务
 	var qiniuVideoService *service.QiniuVideoService
+	
 	if qiniuVideoClient != nil {
 		qiniuVideoService = service.NewQiniuVideoService(
 			qiniuVideoClient,
@@ -168,6 +174,7 @@ func main() {
 			"status":  "ok",
 			"version": "1.0.0",
 			"time":    time.Now().Format(time.RFC3339),
+			"mode":    cfg.VideoGeneration.Type,
 		})
 	})
 

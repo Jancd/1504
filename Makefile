@@ -16,6 +16,8 @@ help:
 	@echo "  make build        - 编译项目"
 	@echo "  make run          - 运行服务"
 	@echo "  make dev          - 开发模式运行(自动重载)"
+	@echo "  make dev-full     - 启动前后端开发环境"
+	@echo "  make frontend     - 启动前端开发服务"
 	@echo "  make test         - 运行测试"
 	@echo "  make clean        - 清理编译文件"
 	@echo "  make check        - 检查依赖"
@@ -84,3 +86,29 @@ install: build
 	@echo "==> 安装到系统..."
 	@cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin/
 	@echo "==> 安装完成"
+
+## dev-full: 启动完整开发环境(前后端)
+dev-full:
+	@echo "==> 启动完整开发环境..."
+ifeq ($(OS),Windows_NT)
+	@scripts\start-dev.bat
+else
+	@chmod +x scripts/start-dev.sh
+	@./scripts/start-dev.sh
+endif
+
+## frontend: 启动前端开发服务
+frontend:
+	@echo "==> 启动前端开发服务..."
+	@cd frontend && npm install && npm run dev
+
+## frontend-build: 构建前端生产版本
+frontend-build:
+	@echo "==> 构建前端生产版本..."
+	@cd frontend && npm install && npm run build
+
+## frontend-clean: 清理前端依赖和构建文件
+frontend-clean:
+	@echo "==> 清理前端文件..."
+	@rm -rf frontend/node_modules
+	@rm -rf frontend/dist
